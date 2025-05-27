@@ -1,0 +1,71 @@
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: file_user
+      POSTGRES_PASSWORD: 160206
+      POSTGRES_DB: file_storage_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U file_user -d file_storage_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  file-storing-service:
+    build:
+      context: .
+      dockerfile: ../../KDZ_final/cmd/file-storing-service/Dockerfile
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:8081/swagger/index.html"]
+      interval: 5s
+      retries: 5
+      start_period: 5s
+
+  file-analysis-service:
+    build:
+      context: .
+      dockerfile: ../../KDZ_final/cmd/file-analysis-service/Dockerfile
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:8082/swagger/index.html"]
+      interval: 5s
+      retries: 5
+      start_period: 5s
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: ../../KDZ_final/cmd/gateway/Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - file-storing-service
+      - file-analysis-service
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:8080"]
+      interval: 5s
+      retries: 5
+      start_period: 5s
+
+volumes:
+  postgres_data:

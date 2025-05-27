@@ -1,0 +1,99 @@
+definitions:
+  file_analysis_service.FileStats:
+    properties:
+      paragraphs:
+        type: integer
+      symbols:
+        type: integer
+      words:
+        type: integer
+    type: object
+info:
+  contact: {}
+paths:
+  /analyze:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Анализирует файл и возвращает статистику
+      parameters:
+      - description: Файл для загрузки
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный ответ
+          schema:
+            $ref: '#/definitions/file_analysis_service.FileStats'
+        "400":
+          description: Ошибка запроса
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Анализ файла
+  /compare:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Принимает файл, вычисляет его хеш и проверяет, существует ли файл
+        с таким же хешем в базе данных
+      parameters:
+      - description: Файл для сравнения
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Файл найден или нет
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Ошибка запроса
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Файл не найден
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Сравнение файлов по содержимому
+  /upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Загружает файл и сохраняет его метаданные
+      parameters:
+      - description: Файл для загрузки
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный ответ
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Ошибка запроса
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Загрузка файла
+swagger: "2.0"
